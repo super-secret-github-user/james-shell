@@ -10,57 +10,61 @@
     flake-utils.lib.eachDefaultSystem (system:
       let
         pkgs = nixpkgs.legacyPackages.${system};
-        f = b: l: if b then with pkgs; l else [ ];
         linux_stuff =
-          f pkgs.stdenv.isLinux [
+          if pkgs.stdenv.isLinux then with pkgs; [
+            nettools
+          ] else [ ];
+        x86linux_stuff =
+          if system == "x86_64-linux" then with pkgs; [
             cudaPackages.cudatoolkit
             cudaPackages.cudnn_8_4_1
-            nettools
-            openssl
-          ];
-        mac_stuff = f pkgs.stdenv.isDarwin [
-          darwin.apple_sdk.frameworks.Security
-        ];
+          ] else [ ];
+        mac_stuff =
+          if pkgs.stdenv.isDarwin then with pkgs; [
+            darwin.apple_sdk.frameworks.Security
+            pkgconfig
+          ] else [ ];
       in
       rec {
-        devShell = pkgs.mkShell {
-          buildInputs =  with pkgs; linux_stuff ++ mac_stuff ++ [
-            openssh
-            git
-            curl
-            gzip
-            zip
+        devShells.default = pkgs.mkShell {
+          buildInputs = with pkgs; linux_stuff ++ mac_stuff ++ x86linux_stuff ++ [
+            cairo
             cmake
+            curl
+            ffmpeg
             gcc
-            libffi
-            which
-            htop
-            zlib
-            swig
-            lsof
-            netcat
-            x264
-            x265
-            gst_all_1.gstreamer
+            git
+            gobject-introspection
+            gst_all_1.gst-devtools
+            gst_all_1.gst-libav
+            gst_all_1.gst-plugins-bad
             gst_all_1.gst-plugins-base
             gst_all_1.gst-plugins-good
-            gst_all_1.gst-plugins-bad
             gst_all_1.gst-plugins-ugly
-            gst_all_1.gst-libav
-            gst_all_1.gst-devtools
             gst_all_1.gst-rtsp-server
+            gst_all_1.gstreamer
+            gzip
+            htop
+            libffi
             libjpeg
             libpng
-            ffmpeg
-            tmux
-            postgresql_15
-            llvm_10
-            cairo
             libxcrypt
-            gobject-introspection
-            rustup
+            llvm_10
+            lsof
+            netcat
+            openssh
+            openssl
+            postgresql_15
             protobuf
+            rustup
             sccache
+            swig
+            tmux
+            which
+            x264
+            x265
+            zip
+            zlib
           ];
           nativeBuildInputs = with pkgs; [
             pkg-config
