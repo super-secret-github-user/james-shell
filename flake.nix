@@ -10,17 +10,21 @@
     flake-utils.lib.eachDefaultSystem (system:
       let
         pkgs = nixpkgs.legacyPackages.${system};
+        f = b: l: if b then with pkgs; l else [ ];
         linux_stuff =
-          if pkgs.stdenv.isLinux then with pkgs; [
+          f pkgs.stdenv.isLinux [
             cudaPackages.cudatoolkit
             cudaPackages.cudnn_8_4_1
             nettools
             openssl
-          ] else [ ];
+          ];
+        mac_stuff = f pkgs.stdenv.isDarwin [
+          darwin.apple_sdk.frameworks.Security
+        ];
       in
       rec {
         devShell = pkgs.mkShell {
-          buildInputs = with pkgs; linux_stuff ++ [
+          buildInputs =  with pkgs; linux_stuff ++ mac_stuff ++ [
             openssh
             git
             curl
